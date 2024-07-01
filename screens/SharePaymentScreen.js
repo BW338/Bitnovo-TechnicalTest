@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import CountrySelectionModal from '../components/CountrySelectionModal';
 
 const SharePaymentScreen = ({ route }) => {
-  const { paymentUrl, identifier, amount } = route.params;
+  const { paymentUrl, identifier, amount, currency,currencySymbol  } = route.params;
   const [paymentStatus, setPaymentStatus] = useState('Pendiente');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isModalVisible, setModalVisible] = useState(false);
@@ -14,7 +14,7 @@ const SharePaymentScreen = ({ route }) => {
   const [showWhatsappInput, setShowWhatsappInput] = useState(false);
   const navigation = useNavigation();
 
-  const formattedAmount = parseFloat(amount).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  //const formattedAmount = `${currency.code} ${parseFloat(amount).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   useEffect(() => {
     const socket = new WebSocket(`wss://payments.pre-bnvo.com/ws/merchant/${identifier}`);
@@ -95,8 +95,8 @@ const SharePaymentScreen = ({ route }) => {
           <Image source={require('../assets/icono-pago-A.png')} style={styles.icon} />
           <View style={styles.textContainer}>
             <Text style={styles.title}>Solicitud de pago</Text>
-            <Text style={styles.amount}> ${formattedAmount}</Text>
-          </View>
+            <Text style={styles.amount}>{currencySymbol} {amount}</Text>
+            </View>
         </View>
         <Text style={styles.subtitle}>Comparte el enlace de pago con el cliente</Text>
       </View>
@@ -107,11 +107,10 @@ const SharePaymentScreen = ({ route }) => {
             <Image source={require('../assets/icono-link.png')} style={styles.cardIconLeft} />
             <Text style={styles.cardText}>{displayPaymentUrl()}</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier })}>
-            {/* Puedes agregar cualquier contenido adicional para el segundo TouchableOpacity */}
+          <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier, amount, currencySymbol })}>
           </TouchableOpacity>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier })}>
+        <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier, amount, currencySymbol })}>
           <Image source={require('../assets/icono-qr.png')} style={styles.cardIconRightOutside} />
         </TouchableOpacity>
       </View>

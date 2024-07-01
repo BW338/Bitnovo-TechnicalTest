@@ -1,5 +1,4 @@
-// CurrencySelectionModal.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, FlatList, Modal } from 'react-native';
 
 const currencies = [
@@ -8,9 +7,15 @@ const currencies = [
   { name: 'Libra Esterlina', code: 'GBP', symbol: '£', flag: require('../assets/flags/uk.png'), key: 3 },
 ];
 
-const CurrencySelectionModal = ({ visible, onClose, onSelectCurrency }) => {
+const CurrencySelectionModal = ({ visible, onClose, onSelectCurrency, initialSelectedCurrency }) => {
   const [searchText, setSearchText] = useState('');
-  const [selectedCurrency, setSelectedCurrency] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState(initialSelectedCurrency);
+
+  useEffect(() => {
+    if (visible) {
+      setSelectedCurrency(initialSelectedCurrency);
+    }
+  }, [visible, initialSelectedCurrency]);
 
   const filteredCurrencies = currencies.filter(currency =>
     currency.name.toLowerCase().includes(searchText.toLowerCase())
@@ -128,6 +133,7 @@ const styles = StyleSheet.create({
   arrowIcon: {
     width: 20,
     height: 20,
+    marginLeft: 'auto',
   },
 });
 

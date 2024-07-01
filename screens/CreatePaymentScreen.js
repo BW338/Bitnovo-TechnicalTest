@@ -1,18 +1,17 @@
-// CreatePaymentScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Modal, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
+import { View, Text, TextInput, Button, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
-import CurrencySelectionModal from '../components/CurrencySelectionModal'; // Importa el nuevo modal
+import CurrencySelectionModal from '../components/CurrencySelectionModal';
 
 const CreatePaymentScreen = () => {
   const [amount, setAmount] = useState('');
   const [concept, setConcept] = useState('');
-  const [currency, setCurrency] = useState({ code: 'GBP', symbol: '£' }); // Estado inicial con GBP
+  const [currency, setCurrency] = useState({ code: 'EUR', symbol: '€' });
   const [modalVisible, setModalVisible] = useState(false);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const [currencies, setCurrencies] = useState([]);
-  const deviceId = '5afdb46a-0386-47af-84b5-02b04e1421e4'; 
+  const deviceId = '5afdb46a-0386-47af-84b5-02b04e1421e4';
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -35,7 +34,7 @@ const CreatePaymentScreen = () => {
         };
 
         const response = await axios.get(url, { headers });
-        console.log('Respuesta de getCurrencies:', response.data); 
+        console.log('Respuesta de getCurrencies:', response.data);
         setCurrencies(response.data);
       } catch (error) {
         console.error('Error al obtener criptomonedas:', error);
@@ -50,7 +49,7 @@ const CreatePaymentScreen = () => {
       const url = 'https://payments.pre-bnvo.com/api/v1/orders/';
       const paymentData = {
         expected_output_amount: parseFloat(amount),
-        fiat: currency.code, 
+        fiat: currency.code,
         merchant_urlko: 'http://example.com/failure',
         merchant_urlok: 'http://example.com/success',
         merchant_url_standby: 'http://example.com/standby',
@@ -63,18 +62,19 @@ const CreatePaymentScreen = () => {
         'X-Device-Id': deviceId,
         'Authorization': 'Basic ' + btoa('guidoamadio88@gmail.com:12233Qwwee')
       };
-  
+
       const response = await axios.post(url, paymentData, { headers });
-  
+
       console.log('Respuesta del servidor:', response.data);
       if (response.status === 200) {
-        navigation.navigate('SharePaymentScreen', 
-            { paymentUrl: response.data.web_url , 
-              amount,
-              identifier: response.data.identifier, 
-            });
+        navigation.navigate('SharePaymentScreen', {
+          paymentUrl: response.data.web_url,
+          amount,
+          identifier: response.data.identifier,
+          currencySymbol: currency.symbol 
+        });
       }
-  
+
     } catch (error) {
       if (error.response) {
         console.error('Error en la respuesta del servidor:', error.response.data);
@@ -87,11 +87,6 @@ const CreatePaymentScreen = () => {
       }
     }
   };
-  
-  // Función para obtener el símbolo de la divisa seleccionada
-  const getCurrencySymbol = () => {
-    return currency.symbol;
-  };
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -99,7 +94,7 @@ const CreatePaymentScreen = () => {
         <Text style={styles.title}>Crear Pago</Text>
         <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.currencyButton}>
           <Text style={styles.currencyText}>{currency.code}</Text>
-          <Image source={require('../assets/arrow-down.png')} style={{height:20, width:20}}  />
+          <Image source={require('../assets/arrow-down.png')} style={{ height: 20, width: 20 }} />
         </TouchableOpacity>
       </View>
 
@@ -110,25 +105,38 @@ const CreatePaymentScreen = () => {
           setCurrency(currency);
           setModalVisible(false);
         }}
+        initialSelectedCurrency={currency}
       />
 
-      <View style={styles.amountContainer}>
-        <Text style={styles.currencySymbol}>{getCurrencySymbol()}</Text>
+<View style={styles.amountContainer}>
 
-        <TextInput
-          value={amount}
-          onChangeText={(text) => {
-            if (text.length <= 7) {
-              const formattedText = text.replace(/[^0-9,.]/g, '');
-              setAmount(formattedText);
-            }
-          }}
-          placeholder="0.00"
-          keyboardType="numeric"
-          style={[styles.amountText, { width: amount ? amount.length * 25 : 40 }]} 
-          maxLength={7} 
-        />
-      </View>
+
+  <TextInput
+    value={amount}
+    onChangeText={(text) => {
+      if (text.length <= 7) {
+        const formattedText = text.replace(/[^0-9,.]/g, '');
+        setAmount(formattedText);
+      }
+    }}
+    placeholder="0.00"
+    placeholderTextColor={amount ? '#00008B' : '#ccc'}
+    keyboardType="numeric"
+    style={[
+      styles.amountText,
+      amount ? styles.activeText : styles.inactiveText,
+      { width: amount ? (amount.length + 1) * 28 : 60, textAlign: 'center', marginLeft: 5, paddingHorizontal: 2 }
+    ]}
+    maxLength={7}
+  />
+    <Text style={[styles.currencySymbol, amount ? styles.activeText : styles.inactiveText]}>
+    {currency.symbol}
+  </Text>
+</View>
+
+
+
+
 
       <Text style={styles.label}>Concepto</Text>
       <TextInput
@@ -136,14 +144,16 @@ const CreatePaymentScreen = () => {
         onChangeText={setConcept}
         placeholder="Añade descripción de pago"
         style={styles.input}
+        maxLength={140}
       />
+      {concept.length > 0 && <Text style={styles.charCount}>{`${concept.length}/140 caracteres`}</Text>}
 
       <View style={styles.buttonContainer}>
         <Button
           title="Continuar"
           onPress={createPayment}
           disabled={!isButtonEnabled}
-          color={isButtonEnabled ? '#000' : '#ccc'}
+          color={isButtonEnabled ? '#00008B' : '#ADD8E6'}
         />
       </View>
     </KeyboardAvoidingView>
@@ -190,25 +200,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
-  amountText: {
-    fontSize: 56,
-    color: '#ccc',
-    textAlign: 'center',
-  },
   currencySymbol: {
     fontSize: 56,
     fontWeight: 'bold',
   },
+  amountText: {
+    fontSize: 56,
+    color: '#ccc',
+    textAlign: 'center', // Alineación central del texto para centrar el cursor
+    marginLeft: 5, // Espacio mínimo entre el símbolo y el texto
+  },
+  activeText: {
+    color: '#00008B',
+  },
+  inactiveText: {
+    color: '#ccc',
+  },
   label: {
     fontSize: 16,
-    marginBottom: 0
+    marginBottom: 4
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 8,
-    marginBottom: 20,
+    marginBottom: 4,
     borderRadius: 5
+  },
+  charCount: {
+    alignSelf: 'flex-end',
+    marginBottom: 20,
+    fontSize: 12,
+    color: '#888',
   },
   buttonContainer: {
     marginBottom: 30
@@ -216,3 +239,4 @@ const styles = StyleSheet.create({
 });
 
 export default CreatePaymentScreen;
+
