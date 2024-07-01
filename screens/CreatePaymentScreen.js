@@ -1,14 +1,14 @@
+// CreatePaymentScreen.js
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, Modal, TouchableOpacity, StyleSheet, KeyboardAvoidingView } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
-import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, TextInput, Button, Modal, TouchableOpacity, Image, StyleSheet, KeyboardAvoidingView } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
+import CurrencySelectionModal from '../components/CurrencySelectionModal'; // Importa el nuevo modal
 
 const CreatePaymentScreen = () => {
   const [amount, setAmount] = useState('');
   const [concept, setConcept] = useState('');
-  const [currency, setCurrency] = useState("GBP"); // Estado inicial con GBP
+  const [currency, setCurrency] = useState({ code: 'GBP', symbol: '£' }); // Estado inicial con GBP
   const [modalVisible, setModalVisible] = useState(false);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const [currencies, setCurrencies] = useState([]);
@@ -50,15 +50,14 @@ const CreatePaymentScreen = () => {
       const url = 'https://payments.pre-bnvo.com/api/v1/orders/';
       const paymentData = {
         expected_output_amount: parseFloat(amount),
-       //expected_output_amount:20,
-        fiat: currency, 
+        fiat: currency.code, 
         merchant_urlko: 'http://example.com/failure',
         merchant_urlok: 'http://example.com/success',
         merchant_url_standby: 'http://example.com/standby',
         notes: concept,
         reference: 'Test Payment'
       };
-    //  console.log('********'+amount)
+
       const headers = {
         'Content-Type': 'application/json',
         'X-Device-Id': deviceId,
@@ -72,7 +71,7 @@ const CreatePaymentScreen = () => {
         navigation.navigate('SharePaymentScreen', 
             { paymentUrl: response.data.web_url , 
               amount,
-              identifier: response.data.identifier,  
+              identifier: response.data.identifier, 
             });
       }
   
@@ -91,16 +90,7 @@ const CreatePaymentScreen = () => {
   
   // Función para obtener el símbolo de la divisa seleccionada
   const getCurrencySymbol = () => {
-    switch(currency) {
-      case 'EUR':
-        return '€';
-      case 'USD':
-        return '$';
-      case 'GBP':
-        return '£';
-      default:
-        return '';
-    }
+    return currency.symbol;
   };
 
   return (
@@ -108,51 +98,39 @@ const CreatePaymentScreen = () => {
       <View style={styles.header}>
         <Text style={styles.title}>Crear Pago</Text>
         <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.currencyButton}>
-          <Text style={styles.currencyText}>{currency}</Text>
-          <MaterialIcons name="arrow-drop-down" size={24} color="black" />
+          <Text style={styles.currencyText}>{currency.code}</Text>
+          <Image source={require('../assets/arrow-down.png')} style={{height:20, width:20}}  />
         </TouchableOpacity>
       </View>
 
-      <Modal visible={modalVisible} onRequestClose={() => setModalVisible(false)} transparent={true}>
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Picker
-              selectedValue={currency}
-              onValueChange={(itemValue) => setCurrency(itemValue)}
-              style={styles.input}
-            >
-              <Picker.Item label="EUR" value="EUR" />
-              <Picker.Item label="USD" value="USD" />
-              <Picker.Item label="GBP" value="GBP" />
-            </Picker>
-            <Button title="Cerrar" onPress={() => setModalVisible(false)} />
-          </View>
-        </View>
-      </Modal>
+      <CurrencySelectionModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onSelectCurrency={(currency) => {
+          setCurrency(currency);
+          setModalVisible(false);
+        }}
+      />
 
       <View style={styles.amountContainer}>
-      <TextInput
-  value={amount}
-  onChangeText={(text) => {
-    // Limitar la cantidad máxima de caracteres a 7
-    if (text.length <= 7) {
-      // Validar que solo se ingresen números y una coma
-      const formattedText = text.replace(/[^0-9,.]/g, '');
-      setAmount(formattedText);
-    }
-  }}
-  placeholder="0.00"
-  keyboardType="numeric"
-  style={[styles.amountText, { width: amount ? amount.length * 25 : 40 }]} // Ancho dinámico según la longitud del texto
-  maxLength={7} // Limitar el máximo de caracteres
-/>
+        <Text style={styles.currencySymbol}>{getCurrencySymbol()}</Text>
 
+        <TextInput
+          value={amount}
+          onChangeText={(text) => {
+            if (text.length <= 7) {
+              const formattedText = text.replace(/[^0-9,.]/g, '');
+              setAmount(formattedText);
+            }
+          }}
+          placeholder="0.00"
+          keyboardType="numeric"
+          style={[styles.amountText, { width: amount ? amount.length * 25 : 40 }]} 
+          maxLength={7} 
+        />
+      </View>
 
-
-  <Text style={styles.currencySymbol}>{getCurrencySymbol()}</Text>
-</View>
-
-      <Text style={styles.label}>Concepto:</Text>
+      <Text style={styles.label}>Concepto</Text>
       <TextInput
         value={concept}
         onChangeText={setConcept}
@@ -180,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between'
   },
   header: {
-    marginTop: 32,
+    marginTop: 52,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -206,18 +184,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginRight: 8
   },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)'
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    width: 300
-  },
   amountContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -225,16 +191,12 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   amountText: {
-    fontSize: 36,
+    fontSize: 56,
     color: '#ccc',
     textAlign: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    padding: 8,
-    marginRight: 8,
   },
   currencySymbol: {
-    fontSize: 20,
+    fontSize: 56,
     fontWeight: 'bold',
   },
   label: {
