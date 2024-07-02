@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Share, StyleSheet, Image, TextInput, TouchableOpacity, ToastAndroid, Modal, Linking } from 'react-native';
+import { View, Text, Share, StyleSheet, Image, TextInput, TouchableOpacity, ToastAndroid, Modal, Linking, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import { useNavigation } from '@react-navigation/native';
@@ -53,24 +53,24 @@ const SharePaymentScreen = ({ route }) => {
     const phoneRegex = /^\d+$/; // Puedes ajustar este regex según el formato de los números de teléfono válidos en tu país
     return phoneRegex.test(phoneNumber);
   };
-  
+
   const sharePayment = (method) => {
     const completePhoneNumber = selectedCountry ? `${selectedCountry.code}${phoneNumber}` : phoneNumber;
-  
+
     if (method === 'whatsapp') {
       if (!completePhoneNumber || !isValidPhoneNumber(phoneNumber)) {
-        ToastAndroid.showWithGravity('Por favor, ingrese un número de teléfono válido', ToastAndroid.SHORT, ToastAndroid.CENTER);
+        showToast('Por favor, ingrese un número de teléfono válido');
         return;
       }
-  
+
       const message = `¡Hola! Aquí está tu enlace de pago: ${paymentUrl}`;
       const url = `https://wa.me/${completePhoneNumber}?text=${encodeURIComponent(message)}`;
-  
+
       Linking.openURL(url)
         .then(() => {
           console.log('Mensaje de WhatsApp enviado');
           setIsMessageSent(true);
-  
+
           // Demorar la muestra del modal 1 segundo
           setTimeout(() => {
             setConfirmationModalVisible(true);
@@ -93,9 +93,17 @@ const SharePaymentScreen = ({ route }) => {
     }
   };
 
+  const showToast = (message) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.showWithGravity(message, ToastAndroid.SHORT, ToastAndroid.CENTER);
+    } else {
+      Alert.alert('Notificación', message);
+    }
+  };
+
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(paymentUrl);
-    ToastAndroid.showWithGravity('Enlace copiado al portapapeles', ToastAndroid.SHORT, ToastAndroid.CENTER);
+    showToast('Enlace copiado al portapapeles');
   };
 
   const displayPaymentUrl = () => {
@@ -103,8 +111,10 @@ const SharePaymentScreen = ({ route }) => {
     return displayedUrl;
   };
 
+
   return (
     <View style={styles.container}>
+     
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <Image source={require('../assets/icono-pago-A.png')} style={styles.icon} />
@@ -116,6 +126,9 @@ const SharePaymentScreen = ({ route }) => {
         <Text style={styles.subtitle}>Comparte el enlace de pago con el cliente</Text>
       </View>
 
+  <View style={{ justifyContent:'space-between', flex:2}}>
+   
+     <View >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
         <TouchableOpacity style={[styles.card, { width: '80%' }]} onPress={copyToClipboard}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -169,7 +182,8 @@ const SharePaymentScreen = ({ route }) => {
         <Image source={require('../assets/icono-export.png')} style={styles.cardIconLeft} />
         <Text style={styles.cardText}>Compartir con otras aplicaciones</Text>
       </TouchableOpacity>
-
+    </View>
+   
       <View style={styles.newRequestButtonContainer}>
         <TouchableOpacity style={styles.newRequestButton} onPress={() => navigation.navigate('CreatePayment')}>
           <View style={styles.buttonContent}>
@@ -178,6 +192,9 @@ const SharePaymentScreen = ({ route }) => {
           </View>
         </TouchableOpacity>
       </View>
+   
+    </View> 
+    
 
       <CountrySelectionModal
         visible={isModalVisible}
@@ -205,6 +222,7 @@ const SharePaymentScreen = ({ route }) => {
           </View>
         </View>
       </Modal>
+  
     </View>
   );
 };

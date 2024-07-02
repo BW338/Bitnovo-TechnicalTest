@@ -68,7 +68,9 @@ const CreatePaymentScreen = () => {
             <Image source={require('../assets/arrow-down.png')} style={styles.arrowIcon} />
           </TouchableOpacity>
         </View>
-
+        <View style ={{ justifyContent: 'space-between', flex:2, marginBottom:12}}>
+ 
+       <View>
         <CurrencySelectionModal
           visible={modalVisible}
           onClose={() => setModalVisible(false)}
@@ -114,7 +116,8 @@ const CreatePaymentScreen = () => {
           />
           {concept.length > 0 && <Text style={styles.charCount}>{`${concept.length}/140 caracteres`}</Text>}
         </View>
-
+      </View>
+        
         <View style={styles.buttonContainer}>
           <Button
             title="Continuar"
@@ -123,6 +126,8 @@ const CreatePaymentScreen = () => {
             color={isButtonEnabled ? '#00008B' : '#ADD8E6'}
           />
         </View>
+        </View>
+
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
