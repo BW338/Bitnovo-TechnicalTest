@@ -4,8 +4,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import CreatePaymentScreen from './screens/CreatePaymentScreen';
 import SharePaymentScreen from './screens/SharePaymentScreen';
 import PaymentStatusScreen from './screens/PaymentStatusScreen';
-import PaymentCompletedScreen from './screens/PaymentCompletedScreen';
 import QRCodeScreen from './screens/QRCodeScreen';
+import PaymentCompletedScreen from './screens/PaymentCompletedScreen';
 
 const Stack = createStackNavigator();
 
@@ -33,6 +33,8 @@ function App() {
         <Stack.Screen name="QRCodeScreen"
           component={QRCodeScreen}
           options={{ headerShown: false }} />
+
+      
 
       </Stack.Navigator>
     </NavigationContainer>

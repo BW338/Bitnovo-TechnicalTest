@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, FlatList, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, FlatList, Modal, SafeAreaView } from 'react-native';
 
 const countries = [
   { name: 'España', code: '+34', flag: require('../assets/flags/esp.png'), key: 1 },
@@ -10,7 +10,8 @@ const countries = [
   { name: 'Guyana', code: '+592', flag: require('../assets/flags/guy.png'), key: 6 },
   { name: 'Hong Kong', code: '+852', flag: require('../assets/flags/hok.png'), key: 7 },
   { name: 'Honduras', code: '+504', flag: require('../assets/flags/hon.png'), key: 8 },
-  //{ name: 'Argentina', code: '+54', flag: require('../assets/flags/hon.png'), key: 9 },
+ // { name: 'Argentina', code: '+54', flag: require('../assets/flags/hon.png'), key: 8 },
+
 
 ];
 
@@ -23,6 +24,7 @@ const CountrySelectionModal = ({ visible, onClose, onSelectCountry }) => {
   );
 
   return (
+    <SafeAreaView>
     <Modal visible={visible} animationType="slide" transparent={true}>
       <View style={styles.modalContainer}>
         <View style={styles.modalHeader}>
@@ -67,6 +69,7 @@ const CountrySelectionModal = ({ visible, onClose, onSelectCountry }) => {
         />
       </View>
     </Modal>
+  </SafeAreaView> 
   );
 };
 

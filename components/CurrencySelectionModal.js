@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, FlatList, Modal } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, FlatList, Modal, SafeAreaView } from 'react-native';
 
 const currencies = [
   { name: 'Euro', code: 'EUR', symbol: '€', flag: require('../assets/flags/eur.png'), key: 1 },
@@ -23,53 +23,59 @@ const CurrencySelectionModal = ({ visible, onClose, onSelectCurrency, initialSel
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true}>
-      <View style={styles.modalContainer}>
-        <View style={styles.modalHeader}>
-          <TouchableOpacity onPress={onClose}>
-            <Image source={require('../assets/icon-back.png')} style={styles.arrowBackIcon} />
-          </TouchableOpacity>
-          <Text style={styles.modalTitle}>Seleccionar divisa</Text>
-        </View>
-        <View style={styles.searchContainer}>
-          <Image source={require('../assets/lupa.png')} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar divisa"
-            value={searchText}
-            onChangeText={setSearchText}
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <TouchableOpacity onPress={onClose}>
+              <Image source={require('../assets/icon-back.png')} style={styles.arrowBackIcon} />
+            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Seleccionar divisa</Text>
+          </View>
+          <View style={styles.searchContainer}>
+            <Image source={require('../assets/lupa.png')} style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar divisa"
+              value={searchText}
+              onChangeText={setSearchText}
+            />
+          </View>
+          <FlatList
+            data={filteredCurrencies}
+            keyExtractor={(item) => item.code}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={styles.currencyItem}
+                onPress={() => {
+                  setSelectedCurrency(item);
+                  onSelectCurrency(item);
+                }}
+              >
+                <Image source={item.flag} style={styles.currencyFlag} />
+                <View style={styles.currencyTextContainer}>
+                  <Text style={styles.currencyText}>{item.name}</Text>
+                  <Text style={styles.currencyCode}>{item.code}</Text>
+                </View>
+                <Image
+                  source={selectedCurrency?.code === item.code
+                    ? require('../assets/ok.png')
+                    : require('../assets/arrow-right.png')}
+                  style={styles.arrowIcon}
+                />
+              </TouchableOpacity>
+            )}
           />
         </View>
-        <FlatList
-          data={filteredCurrencies}
-          keyExtractor={(item) => item.code}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.currencyItem}
-              onPress={() => {
-                setSelectedCurrency(item);
-                onSelectCurrency(item);
-              }}
-            >
-              <Image source={item.flag} style={styles.currencyFlag} />
-              <View style={styles.currencyTextContainer}>
-                <Text style={styles.currencyText}>{item.name}</Text>
-                <Text style={styles.currencyCode}>{item.code}</Text>
-              </View>
-              <Image
-                source={selectedCurrency?.code === item.code
-                  ? require('../assets/ok.png')
-                  : require('../assets/arrow-right.png')}
-                style={styles.arrowIcon}
-              />
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: 'white',
+  },
   modalContainer: {
     flex: 1,
     backgroundColor: 'white',
