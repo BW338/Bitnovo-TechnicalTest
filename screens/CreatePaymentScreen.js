@@ -11,6 +11,7 @@ const CreatePaymentScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [isButtonEnabled, setIsButtonEnabled] = useState(false);
   const [currencies, setCurrencies] = useState([]);
+  const [title, setTitle] = useState('Crear Pago'); // Estado para el título
   const deviceId = '5afdb46a-0386-47af-84b5-02b04e1421e4';
   const navigation = useNavigation();
 
@@ -57,73 +58,82 @@ const CreatePaymentScreen = () => {
       }
     }
   };
+  
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.title}>Crear Pago</Text>
-          <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.currencyButton}>
+          <Text style={styles.title}>{title}</Text>
+          <TouchableOpacity
+            onPress={() => {
+              setModalVisible(true);
+              setTitle('Importe a pagar');
+            }}
+            style={styles.currencyButton}
+          >
             <Text style={styles.currencyText}>{currency.code}</Text>
             <Image source={require('../assets/arrow-down.png')} style={styles.arrowIcon} />
           </TouchableOpacity>
         </View>
         <View style ={{ justifyContent: 'space-between', flex:2, marginBottom:12}}>
- 
-       <View>
-        <CurrencySelectionModal
-          visible={modalVisible}
-          onClose={() => setModalVisible(false)}
-          onSelectCurrency={(selectedCurrency) => {
-            setCurrency(selectedCurrency);
-            setModalVisible(false);
-          }}
-          initialSelectedCurrency={currency}
-        />
-
-        <View style={styles.amountContainer}>
-          <TextInput
-            value={amount}
-            onChangeText={(text) => {
-              if (text.length <= 7) {
-                setAmount(text.replace(/[^0-9,.]/g, ''));
-              }
-            }}
-            placeholder="0"
-            placeholderTextColor={amount ? '#00008B' : '#ccc'}
-            keyboardType="numeric"
-            style={[
-              styles.amountText,
-              amount ? styles.activeText : styles.inactiveText,
-              { width: amount ? (amount.length + 1) * 28 : 60 }
-            ]}
-            maxLength={7}
-          />
-          <Text style={[styles.currencySymbol, amount ? styles.activeText : styles.inactiveText]}>
-            {currency.symbol}
-          </Text>
-        </View>
-
+   
         <View>
-          <Text style={styles.label}>Concepto</Text>
-          <TextInput
-            value={concept}
-            onChangeText={setConcept}
-            placeholder="Añade descripción de pago"
-            style={styles.input}
-            multiline
-            maxLength={140}
+          <CurrencySelectionModal
+            visible={modalVisible}
+            onClose={() => {
+              setModalVisible(false);
+            }}
+            onSelectCurrency={(selectedCurrency) => {
+              setCurrency(selectedCurrency);
+              setModalVisible(false);
+            }}
+            initialSelectedCurrency={currency}
           />
-          {concept.length > 0 && <Text style={styles.charCount}>{`${concept.length}/140 caracteres`}</Text>}
+
+          <View style={styles.amountContainer}>
+            <TextInput
+              value={amount}
+              onChangeText={(text) => {
+                if (text.length <= 7) {
+                  setAmount(text.replace(/[^0-9,.]/g, ''));
+                }
+              }}
+              placeholder="0"
+              placeholderTextColor={amount ? '#1e90ff' : '#ccc'}
+              keyboardType="numeric"
+              style={[
+                styles.amountText,
+                amount ? styles.activeText : styles.inactiveText,
+                { width: amount ? (amount.length + 1) * 28 : 60 }
+              ]}
+              maxLength={7}
+            />
+            <Text style={[styles.currencySymbol, amount ? styles.activeText : styles.inactiveText]}>
+              {currency.symbol}
+            </Text>
+          </View>
+
+          <View>
+            <Text style={styles.label}>Concepto</Text>
+            <TextInput
+              value={concept}
+              onChangeText={setConcept}
+              placeholder="Añade descripción de pago"
+              style={styles.input}
+              multiline
+              maxLength={140}
+            />
+            {concept.length > 0 && <Text style={styles.charCount}>{`${concept.length}/140 caracteres`}</Text>}
+          </View>
         </View>
-      </View>
-        
+          
         <View style={styles.buttonContainer}>
           <Button
             title="Continuar"
             onPress={createPayment}
             disabled={!isButtonEnabled}
-            color={isButtonEnabled ? '#00008B' : '#ADD8E6'}
+            color={isButtonEnabled ? '#00008B' : '#1e90ff'}
           />
         </View>
         </View>
@@ -151,11 +161,10 @@ const styles = StyleSheet.create({
     marginBottom: 16
   },
   title: {
+    color:"#000060",
     fontSize: 20,
     fontWeight: 'bold',
-    position: 'absolute',
-    left: '50%',
-    transform: [{ translateX: -50 }],
+    position: 'center',
   },
   currencyButton: {
     borderRadius: 12,
@@ -167,6 +176,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   currencyText: {
+    color:'#000060',
     fontSize: 14,
     marginRight: 8
   },
@@ -198,10 +208,12 @@ const styles = StyleSheet.create({
     color: '#ccc',
   },
   label: {
-    fontSize: 16,
+    color:"#000080",
+    fontSize: 18,
     marginBottom: 4
   },
   input: {
+    fontSize:16,
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 8,
@@ -215,7 +227,7 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   buttonContainer: {
-    marginBottom: 30
+    marginBottom: 30,
   }
 });
 

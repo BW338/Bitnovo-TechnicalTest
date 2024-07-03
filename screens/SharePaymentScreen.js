@@ -14,6 +14,7 @@ const SharePaymentScreen = ({ route }) => {
   const [showWhatsappInput, setShowWhatsappInput] = useState(false);
   const [isMessageSent, setIsMessageSent] = useState(false);
   const [confirmationModalVisible, setConfirmationModalVisible] = useState(false);
+  const [selectedCard, setSelectedCard] = useState(null); // Nuevo estado para la tarjeta seleccionada
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -101,6 +102,21 @@ const SharePaymentScreen = ({ route }) => {
     }
   };
 
+  const formatAmount = (value) => {
+    if (!value) return '0,00';
+    let formattedValue = value.toString().replace(',', '.').replace(/[^0-9.]/g, '');
+    if (formattedValue) {
+      const [integer, decimal] = formattedValue.split('.');
+      const integerPart = integer ? parseInt(integer, 10) : 0;
+      const decimalPart = decimal ? decimal.slice(0, 2) : '00';
+      formattedValue = `${integerPart.toLocaleString()}.${decimalPart}`;
+    } else {
+      formattedValue = '0.00';
+    }
+    return formattedValue.replace('.', ',');
+  };
+  
+
   const copyToClipboard = async () => {
     await Clipboard.setStringAsync(paymentUrl);
     showToast('Enlace copiado al portapapeles');
@@ -111,7 +127,6 @@ const SharePaymentScreen = ({ route }) => {
     return displayedUrl;
   };
 
-
   return (
     <View style={styles.container}>
      
@@ -120,81 +135,112 @@ const SharePaymentScreen = ({ route }) => {
           <Image source={require('../assets/icono-pago-A.png')} style={styles.icon} />
           <View style={styles.textContainer}>
             <Text style={styles.title}>Solicitud de pago</Text>
-            <Text style={styles.amount}>{currencySymbol} {amount}</Text>
-          </View>
+            <Text style={styles.amount}>{currencySymbol} {formatAmount(amount)}</Text>
+            </View>
         </View>
         <Text style={styles.subtitle}>Comparte el enlace de pago con el cliente</Text>
       </View>
 
-  <View style={{ justifyContent:'space-between', flex:2}}>
+      <View style={{ justifyContent:'space-between', flex:2 }}>
    
-     <View >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-        <TouchableOpacity style={[styles.card, { width: '80%' }]} onPress={copyToClipboard}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <Image source={require('../assets/icono-link.png')} style={styles.cardIconLeft} />
-            <Text style={styles.cardText}>{displayPaymentUrl()}</Text>
+        <View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <TouchableOpacity
+              style={[styles.card, { width: '80%' }, selectedCard === 'clipboard' && styles.selectedCard]}
+              onPress={() => {
+                copyToClipboard();
+                setSelectedCard('clipboard');
+              }}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Image source={require('../assets/icono-link.png')} style={styles.cardIconLeft} />
+                <Text style={styles.cardText}>{displayPaymentUrl()}</Text>
+              </View>
+              <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier, amount, currencySymbol })}>
+              </TouchableOpacity>
+            </TouchableOpacity>
+          
+           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}> 
+            <TouchableOpacity
+              onPress={() => {
+                navigation.navigate('QRCodeScreen', { paymentUrl, identifier, amount, currencySymbol });
+                setSelectedCard('qr');
+              }}>
+              <Image source={require('../assets/icono-qr.png')} style={[styles.cardIconRightOutside, selectedCard === 'qr' && styles.selectedCard]} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier, amount, currencySymbol })}>
+
+          </View>
+
+          <TouchableOpacity
+            style={[styles.card, selectedCard === 'email' && styles.selectedCard]}
+            onPress={() => {
+              sharePayment('email');
+              setSelectedCard('email');
+            }}
+          >
+            <Image source={require('../assets/icono-flecha.png')} style={styles.cardIconLeft} />
+            <Text style={styles.cardText}>Enviar por correo electrónico</Text>
           </TouchableOpacity>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate('QRCodeScreen', { paymentUrl, identifier, amount, currencySymbol })}>
-          <Image source={require('../assets/icono-qr.png')} style={styles.cardIconRightOutside} />
-        </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity style={styles.card} onPress={() => sharePayment('email')}>
-        <Image source={require('../assets/icono-flecha.png')} style={styles.cardIconLeft} />
-        <Text style={styles.cardText}>Enviar por correo electrónico</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.card, selectedCard === 'whatsapp' && styles.selectedCard]}
+            onPress={() => {
+              setShowWhatsappInput(true);
+              setSelectedCard('whatsapp');
+            }}
+          >
+            <Image source={require('../assets/icono-wsp.png')} style={styles.cardIconLeft} />
+            {!showWhatsappInput ? (
+              <Text style={styles.cardText}>Enviar a número de Whatsapp</Text>
+            ) : (
+              <View style={styles.whatsappContainer}>
+                <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.countryButton}>
+                  {selectedCountry ? (
+                    <View style={styles.selectedCountryContainer}>
+                      <Text style={styles.selectedCountryText}>{selectedCountry.code}</Text>
+                      <Image source={require('../assets/arrow-down.png')} style={styles.arrowDownIcon} />
+                    </View>
+                  ) : (
+                    <Image source={require('../assets/arrow-down.png')} style={styles.arrowDownIcon} />
+                  )}
+                </TouchableOpacity>
+                <TextInput
+                  style={styles.input}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                  keyboardType="phone-pad"
+                  maxLength={12}
+                />
+                <TouchableOpacity onPress={() => sharePayment('whatsapp')} style={styles.sendButton}>
+                  <Image source={require('../assets/enviar.png')} style={{ height: 28, width: 60, borderRadius: 5 }} />
+                </TouchableOpacity>
+              </View>
+            )}
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.card} onPress={() => setShowWhatsappInput(true)}>
-        <Image source={require('../assets/icono-wsp.png')} style={styles.cardIconLeft} />
-        {!showWhatsappInput ? (
-          <Text style={styles.cardText}>Enviar a número de Whatsapp</Text>
-        ) : (
-          <View style={styles.whatsappContainer}>
-            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.countryButton}>
-              {selectedCountry ? (
-                <View style={styles.selectedCountryContainer}>
-                  <Text style={styles.selectedCountryText}>{selectedCountry.code}</Text>
-                  <Image source={require('../assets/arrow-down.png')} style={styles.arrowDownIcon} />
-                </View>
-              ) : (
-                <Image source={require('../assets/arrow-down.png')} style={styles.arrowDownIcon} />
-              )}
-            </TouchableOpacity>
-            <TextInput
-              style={styles.input}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              maxLength={12}
-            />
-            <TouchableOpacity onPress={() => sharePayment('whatsapp')} style={styles.sendButton}>
-              <Image source={require('../assets/enviar.png')} style={{ height: 28, width: 60, borderRadius: 5 }} />
-            </TouchableOpacity>
-          </View>
-        )}
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.card, selectedCard === 'other' && styles.selectedCard]}
+            onPress={() => {
+              sharePayment('other');
+              setSelectedCard('other');
+            }}
+          >
+            <Image source={require('../assets/icono-export.png')} style={styles.cardIconLeft} />
+            <Text style={styles.cardText}>Compartir con otras aplicaciones</Text>
+          </TouchableOpacity>
+        </View>
 
-      <TouchableOpacity style={styles.card} onPress={() => sharePayment('other')}>
-        <Image source={require('../assets/icono-export.png')} style={styles.cardIconLeft} />
-        <Text style={styles.cardText}>Compartir con otras aplicaciones</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.newRequestButtonContainer}>
+          <TouchableOpacity style={styles.newRequestButton} onPress={() => navigation.navigate('CreatePayment')}>
+            <View style={styles.buttonContent}>
+              <Text style={styles.newRequestButtonText}>Nueva Solicitud</Text>
+              <Image source={require('../assets/nr.png')} style={styles.buttonIcon} />
+            </View>
+          </TouchableOpacity>
+        </View>
    
-      <View style={styles.newRequestButtonContainer}>
-        <TouchableOpacity style={styles.newRequestButton} onPress={() => navigation.navigate('CreatePayment')}>
-          <View style={styles.buttonContent}>
-            <Image source={require('../assets/nr.png')} style={styles.buttonIcon} />
-            <Text style={styles.newRequestButtonText}>Nueva Solicitud</Text>
-          </View>
-        </TouchableOpacity>
       </View>
-   
-    </View> 
-    
 
       <CountrySelectionModal
         visible={isModalVisible}
@@ -214,8 +260,6 @@ const SharePaymentScreen = ({ route }) => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Image source={require('../assets/confirmacion.png')} style={styles.modalIcon} />
-            {/* <Text style={styles.modalTitle}>Solicitud enviada</Text>
-            <Text style={styles.modalMessage}>Tu solicitud de pago enviada ha sido enviado con éxito por WhatsApp.</Text> */}
             <TouchableOpacity onPress={() => setConfirmationModalVisible(false)} style={styles.modalButton}>
               <Text style={styles.modalButtonText}>Entendido</Text>
             </TouchableOpacity>
@@ -259,7 +303,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   title: {
-    fontSize: 18,
+    fontSize: 12,
     color: '#778899',
   },
   amount: {
@@ -268,7 +312,7 @@ const styles = StyleSheet.create({
     color: '#191970',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 12,
     color: '#778899',
     marginTop: 10,
   },
@@ -284,6 +328,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    paddingVertical:20
+  },
+  selectedCard: {
+    borderColor: '#6495ed',
+    borderWidth: 2,
   },
   cardIconLeft: {
     width: 24,
@@ -291,12 +340,12 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   cardIconRightOutside: {
-    width: 50,
-    height: 50,
+    width: 55,
+    height: 55,
   },
   cardText: {
     fontSize: 16,
-    color: '#333',
+    color:'#000060',
   },
   whatsappContainer: {
     flexDirection: 'row',
@@ -338,7 +387,6 @@ const styles = StyleSheet.create({
   },
   newRequestButtonContainer: {
     flexDirection: 'row',
-  //  borderWidth:2,
     justifyContent: 'center',
     marginTop: 20,
   },
@@ -346,7 +394,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
-    backgroundColor: '#007bff',
+   // backgroundColor: '#007bff',
     borderRadius: 5,
   },
   buttonContent: {
@@ -356,11 +404,11 @@ const styles = StyleSheet.create({
   buttonIcon: {
     width: 24,
     height: 24,
-    marginRight: 10,
+    marginLeft: 10,
   },
   newRequestButtonText: {
     fontSize: 16,
-    color: '#fff',
+    color:'#0000cd',
   },
   modalOverlay: {
     flex: 1,

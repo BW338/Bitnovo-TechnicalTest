@@ -48,10 +48,14 @@ const QRCodeScreen = ({ route }) => {
     };
   }, [identifier, navigation]);
   
-
   const handleGoBack = () => {
     navigation.goBack();
   };
+
+  const formattedAmount = parseFloat(amount).toLocaleString('es-ES', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -74,18 +78,18 @@ const QRCodeScreen = ({ route }) => {
             Escanea el QR y serás redirigido a la pasarela de pago de Bitnovo Pay.
           </Text>
         </View>
-       <View style={styles.qrContainer}>
-  <QRCode 
-    value={paymentUrl} 
-    size={340}
-    logo={require('../assets/bitnovo2.png')}
-    logoSize={90} 
-    logoBackgroundColor="transparent"
-    logoWidth={200}  
-    logoHeight={90} 
-  />
-</View>
-        <Text style={styles.amount}>{`${amount} ${currencySymbol}`}</Text>
+        <View style={styles.qrContainer}>
+          <QRCode 
+            value={paymentUrl} 
+            size={340}
+            logo={require('../assets/bitnovo2.png')}
+            logoSize={90} 
+            logoBackgroundColor="transparent"
+            logoWidth={200}  
+            logoHeight={90} 
+          />
+        </View>
+        <Text style={styles.amount}>{`${formattedAmount} ${currencySymbol}`}</Text>
         <Text style={styles.autoUpdateText}>Esta pantalla se actualizará automáticamente.</Text>
       </View>
     </SafeAreaView>
@@ -128,11 +132,11 @@ const styles = StyleSheet.create({
     width: 24,              
     height: 24,             
     marginRight: 10,        
-    alignSelf: 'flex-start' 
+    alignSelf: 'flex-start',
   },
   infoText: {
-    color: '#000',
-    fontSize: 16,
+    color:'#0000cd', 
+    fontSize: 13,
     textAlign: 'left',
     flex: 1,               
     flexWrap: 'wrap'      

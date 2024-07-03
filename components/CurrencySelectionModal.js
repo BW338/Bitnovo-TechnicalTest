@@ -29,13 +29,13 @@ const CurrencySelectionModal = ({ visible, onClose, onSelectCurrency, initialSel
             <TouchableOpacity onPress={onClose}>
               <Image source={require('../assets/icon-back.png')} style={styles.arrowBackIcon} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Seleccionar divisa</Text>
+            <Text style={styles.modalTitle}>Selecciona una divisa</Text>
           </View>
           <View style={styles.searchContainer}>
             <Image source={require('../assets/lupa.png')} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="Buscar divisa"
+              placeholder="Buscar"
               value={searchText}
               onChangeText={setSearchText}
             />
@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   modalTitle: {
+    color:'#000060',
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   currencyText: {
+    color:'#000060',
     fontSize: 16,
   },
   currencyCode: {

@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   modalTitle: {
+    color:'#000060',
     fontSize: 18,
     fontWeight: 'bold',
     flex: 1,
